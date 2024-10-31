@@ -135,9 +135,9 @@ while running:
     pygame.display.flip()
     clock.tick(TARGET_FPS)
 
-    frame_count += 1
-    if frame_count >= total_frames:
-        running = False
+    # frame_count += 1
+    # if frame_count >= total_frames:
+    #     running = False
 
 # Clean up
 video_writer.close()
