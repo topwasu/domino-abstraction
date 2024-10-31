@@ -9,7 +9,7 @@ import numpy as np
 from classes import ContactListener, Button, Slider
 
 # Screen dimensions and conversion factor
-SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
+SCREEN_WIDTH, SCREEN_HEIGHT = 800, 800
 PPM = 20.0  # Pixels per meter
 TARGET_FPS = 60
 TIME_STEP = 1.0 / TARGET_FPS
@@ -23,7 +23,7 @@ def to_pygame(pos):
     return int(pos[0] * PPM), int(SCREEN_HEIGHT - pos[1] * PPM)
 
 
-def get_world(domino_spacing=0.5, domino_width=0.2, domino_height=1.0, num_dominoes=20):
+def get_world(domino_spacing=0.5, domino_width=0.2, domino_height=1.0, num_dominoes=20, small_gap=0.1, hole_size=0.1):
     # Box2D world setup
     world = b2World(gravity=(0, -10), doSleep=True)
 
@@ -33,6 +33,12 @@ def get_world(domino_spacing=0.5, domino_width=0.2, domino_height=1.0, num_domin
         position=(12.5, 5),  # Centered at x=12.5, y=5
         shapes=b2PolygonShape(box=(12.5, 1)),  # Half-width 12.5, half-height 1
     )
+    
+    platform_body2 = world.CreateStaticBody(
+        position=(25 + hole_size + 1, 5),  # Centered at x=12.5, y=5
+        shapes=b2PolygonShape(box=(1, 1)),  # Half-width 12.5, half-height 1
+    )
+    
 
 
     # Create dominoes
@@ -61,7 +67,6 @@ def get_world(domino_spacing=0.5, domino_width=0.2, domino_height=1.0, num_domin
     # Bowling ball properties
     bowling_ball_radius = 0.5  # 0.5 meters radius
     bowling_ball_density = 0.5  # Adjust as needed
-    small_gap = 0.1  # Gap between last domino and bowling ball
 
     bowling_ball_x = last_domino_x + domino_width / 2 + bowling_ball_radius + small_gap
     bowling_ball_y = 6 + bowling_ball_radius  # On top of the platform
@@ -75,7 +80,7 @@ def get_world(domino_spacing=0.5, domino_width=0.2, domino_height=1.0, num_domin
     # Create the balance beam (seesaw)
     beam_length = 8.0  # Total length of the beam
     beam_thickness = 0.2  # Thickness of the beam
-    beam_position = (30, 2.0)  # Position of the fulcrum (pivot point)
+    beam_position = (32 + hole_size, 2.0)  # Position of the fulcrum (pivot point)
 
     # Beam body (dynamic)
     beam_body = world.CreateDynamicBody(
