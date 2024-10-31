@@ -23,7 +23,7 @@ def to_pygame(pos):
     return int(pos[0] * PPM), int(SCREEN_HEIGHT - pos[1] * PPM)
 
 
-def get_world(domino_spacing=0.5, domino_width=0.2, domino_height=1.0):
+def get_world(domino_spacing=0.5, domino_width=0.2, domino_height=1.0, num_dominoes=20):
     # Box2D world setup
     world = b2World(gravity=(0, -10), doSleep=True)
 
@@ -36,12 +36,11 @@ def get_world(domino_spacing=0.5, domino_width=0.2, domino_height=1.0):
 
 
     # Create dominoes
-    num_dominoes = 20
     start_x = 5  # Starting x position on the platform
     start_y = 6 + domino_height / 2  # Platform top surface y=6, domino center y
 
     domino_bodies = []  # List to hold domino bodies
-
+    num_dominoes = int(num_dominoes)
     for i in range(num_dominoes):
         angle = 0.0
         if i == 0:

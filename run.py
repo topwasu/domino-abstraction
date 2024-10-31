@@ -40,10 +40,11 @@ beam_tip = "neutral"
 video_writer = imageio.get_writer('domino_simulation_balance_beam.mp4', fps=TARGET_FPS)
 
 
-domino_spacing_slider = Slider('domino_spacing', 100, 150, 600, 20)
-domino_width_slider = Slider('domino_width', 100, 250, 600, 20)
-domino_height_slider = Slider('domino_height', 100, 350, 600, 20)
-sliders = [domino_spacing_slider, domino_width_slider, domino_height_slider]
+domino_spacing_slider = Slider('domino_spacing', 100, 50, 600, 20, 2)
+domino_width_slider = Slider('domino_width', 100, 150, 600, 20, 2)
+domino_height_slider = Slider('domino_height', 100, 250, 600, 20, 2)
+num_dominoes_slider = Slider('num_dominoes', 100, 350, 600, 20, 20)
+sliders = [domino_spacing_slider, domino_width_slider, domino_height_slider, num_dominoes_slider]
 start_button = Button(350, 400, 100, 50, "Start", font, GRAY, (170, 170, 170), BLACK)
 
 # Simulation loop
@@ -63,6 +64,7 @@ while running:
         
         # Handle button click to start the game
         slider_values = [max(0.1, slider.get_value()) for slider in sliders]
+        slider_values[-1] = max(slider_values[-1], 1)
         
         if start_button.handle_event(event):
             game_started = True  # Set the flag to True to indicate game has started
@@ -80,7 +82,7 @@ while running:
             slider.draw(screen)
             font = pygame.font.Font(None, 36)
             text = font.render(f"{slider.name}: {slider.get_value():.2f}", True, BLACK)
-            screen.blit(text, (100, 100*(idx + 1)))
+            screen.blit(text, (100, 100*(idx)))
         
         start_button.draw(screen)
     else:

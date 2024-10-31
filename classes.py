@@ -13,12 +13,13 @@ BLACK = (0, 0, 0)
 
 
 class Slider:
-    def __init__(self, name, x, y, width, height):
+    def __init__(self, name, x, y, width, height, range):
         self.name = name
         self.rect = pygame.Rect(x, y, width, height)
         self.circle_radius = height // 2
         self.circle_x = x  # Start position of the slider handle
         self.dragging = False
+        self.range=range
 
     def draw(self, surface):
         # Draw the slider track
@@ -45,7 +46,7 @@ class Slider:
                 
     def get_value(self):
         # Map the slider position to a range (e.g., 0 to 100)
-        return (self.circle_x - self.rect.left) / self.rect.width * 100
+        return (self.circle_x - self.rect.left) / self.rect.width * self.range
 
 # Contact listener to monitor contacts
 class ContactListener(b2ContactListener):
