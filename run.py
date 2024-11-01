@@ -26,7 +26,9 @@ def get_values(sliders, config):
     elif config.task == 'task_3':
         return [0.5, 0.2, 1.0, 6, 0.6, 0]
     else:
-        raise NotImplementedError
+        slider_values = [max(0.1, slider.get_value()) for slider in sliders]
+        slider_values[-3] = max(slider_values[-3], 1)
+        return slider_values
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
