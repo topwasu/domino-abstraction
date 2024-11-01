@@ -7,6 +7,7 @@ from Box2D import (
 import imageio
 import numpy as np
 import hydra
+import matplotlib.pyplot as plt
 
 from classes import ContactListener, Button, Slider
 from world import get_world, to_pygame, draw_world_on_screen
@@ -110,6 +111,8 @@ def main(config):
                     screen.blit(text, (100, 100*(idx)))
             
             start_button.draw(screen)
+            
+            
         else:
 
             # Update variables
@@ -165,6 +168,10 @@ def main(config):
         # frame_count += 1
         # if frame_count >= total_frames:
         #     running = False
+        
+        plt.imshow(frame)
+        plt.axis('off')
+        plt.savefig(f'domino_simulation_balance_beam_{config.task}.png')
 
     # Clean up
     video_writer.close()
