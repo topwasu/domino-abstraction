@@ -9,10 +9,16 @@ from Box2D import (
     b2RevoluteJointDef,
 )
 import imageio
-import numpy as np
+import re
+
+use_pygame = True
+
+if use_pygame:
+    import pygame
 
 # # Initialize Pygame
-# pygame.init()
+if use_pygame:
+    pygame.init()
 
 # Screen dimensions and conversion factor
 SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
@@ -22,10 +28,11 @@ TIME_STEP = 1.0 / TARGET_FPS
 DURATION = 30  # Duration of the simulation in seconds
 
 # # Pygame setup
-# screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-# pygame.display.set_caption("Domino Simulation with Balance Beam and Cups")
-# clock = pygame.time.Clock()
-# font = pygame.font.SysFont("Arial", 18)
+if use_pygame:
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption("Domino Simulation with Balance Beam and Cups")
+    clock = pygame.time.Clock()
+    font = pygame.font.SysFont("Arial", 18)
 
 # Colors
 WHITE = (255, 255, 255)
@@ -117,49 +124,42 @@ def to_pygame(pos):
     return int(pos[0] * PPM), int(SCREEN_HEIGHT - pos[1] * PPM)
 
 
-domino_width = 0.2
+def parse_scenario(scenario_text):
+    # Extract values using regular expressions
+    width = float(re.search(r"width\(([\d.]+)\)\.", scenario_text).group(1))
+    height = float(re.search(r"height\(([\d.]+)\)\.", scenario_text).group(1))
+    push_position = float(
+        re.search(r"push\(domino\(([\d.]+)\)\)\.", scenario_text).group(1)
+    )
+    domino_positions = [
+        float(x) for x in re.findall(r"domino\(([\d.]+)\)\.", scenario_text)
+    ]
+    ball_positions = [
+        float(x) for x in re.findall(r"ball_x\(([\d.]+)\)\.", scenario_text)
+    ]
+    return (width, height, push_position, domino_positions, ball_positions)
 
-scenarios = []
 
-for r in [3, 6, 9, 12]:
-    for n in [5, 10, 20]:
-        for k in [0, 2, 4]:
-            scenarios.append((domino_width * r, n, k))
+with open(sys.argv[1], "r") as f:
+    scenario_text = f.read()
+domino_width, domino_height, push_position, domino_positions, ball_positions = (
+    parse_scenario(scenario_text)
+)
 
-# Create dominoes
-scenario = int(sys.argv[1])
-if scenario >= len(scenarios):
-    exit(0)
-domino_height, num_dominoes, n_skip = scenarios[scenario]
+num_dominoes = len(domino_positions)
 start_x = 5  # Starting x position on the platform
 start_y = 6 + domino_height / 2  # Platform top surface y=6, domino center y
-
-print(f"width({domino_width}).")
-print(f"height({domino_height}).")
 
 domino_spacing = 0.5  # Spacing between dominoes
 domino_bodies = []  # List to hold domino bodies
 
-mid = num_dominoes // 2
-skip_start = mid - n_skip // 2
-skip_end = mid + n_skip // 2
-pushed = False
-for i in range(num_dominoes):
-    if skip_start <= i < skip_end:
-        continue
-
+for i, d in enumerate(domino_positions):
     domino_x = start_x + i * (domino_width + domino_spacing)
     angle = 0.0
-    if not pushed:
-        angle = -0.3  # Slightly tilt the first domino to initiate the fall
-        print(f"push(domino({domino_x})).")
-        pushed = True
+    if d == push_position:
+        angle = -0.3
 
-    body = world.CreateDynamicBody(
-        position=(domino_x, start_y),
-        angle=angle,
-    )
-    print(f"domino({domino_x}).")
+    body = world.CreateDynamicBody(position=(domino_x, start_y), angle=angle)
     body.CreatePolygonFixture(
         box=(domino_width / 2, domino_height / 2), density=1.0, friction=0.3
     )
@@ -178,18 +178,17 @@ bowling_ball_radius = 0.5  # 0.5 meters radius
 bowling_ball_density = 0.5  # Adjust as needed
 small_gap = 0.1  # Gap between last domino and bowling ball
 
-bowling_ball_x = last_domino_x + domino_width / 2 + bowling_ball_radius + small_gap
-bowling_ball_y = 6 + bowling_ball_radius  # On top of the platform
+for bowling_ball_x in ball_positions:
+    bowling_ball_x = last_domino_x + domino_width / 2 + bowling_ball_radius + small_gap
+    bowling_ball_y = 6 + bowling_ball_radius  # On top of the platform
 
-print(f"ball_x({bowling_ball_x}).")
-
-# Create bowling ball
-bowling_ball_body = world.CreateDynamicBody(
-    position=(bowling_ball_x, bowling_ball_y),
-)
-bowling_ball_body.CreateCircleFixture(
-    radius=bowling_ball_radius, density=bowling_ball_density, friction=0.3
-)
+    # Create bowling ball
+    bowling_ball_body = world.CreateDynamicBody(
+        position=(bowling_ball_x, bowling_ball_y),
+    )
+    bowling_ball_body.CreateCircleFixture(
+        radius=bowling_ball_radius, density=bowling_ball_density, friction=0.3
+    )
 
 # Create the balance beam (seesaw)
 beam_length = 8.0  # Total length of the beam
@@ -280,12 +279,12 @@ total_frames = DURATION * TARGET_FPS  # Total number of frames to record
 
 while running:
     # # Handle events
-    # for event in pygame.event.get():
-    #     if event.type == pygame.QUIT:
-    #         running = False
+    if use_pygame:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
 
-    # # Clear screen
-    # screen.fill(WHITE)
+        screen.fill(WHITE)
 
     # Update variables
     # Check if the first domino has tipped (angle significantly different from initial angle)
@@ -307,44 +306,47 @@ while running:
     ball_velocity = bowling_ball_body.linearVelocity.x
     ball_moving_right = ball_velocity > 0.1  # Threshold to avoid floating-point errors
 
-    # # Draw static bodies (platform, fulcrum)
-    # for body in world.bodies:
-    #     if body.type == b2_staticBody:
-    #         for fixture in body.fixtures:
-    #             shape = fixture.shape
-    #             if isinstance(shape, b2PolygonShape):
-    #                 vertices = [body.transform * v for v in shape.vertices]
-    #                 vertices = [to_pygame(v) for v in vertices]
-    #                 pygame.draw.polygon(screen, BLACK, vertices)
+    if use_pygame:
+        # Draw static bodies (platform, fulcrum)
+        for body in world.bodies:
+            if body.type == b2_staticBody:
+                for fixture in body.fixtures:
+                    shape = fixture.shape
+                    if isinstance(shape, b2PolygonShape):
+                        vertices = [body.transform * v for v in shape.vertices]
+                        vertices = [to_pygame(v) for v in vertices]
+                        pygame.draw.polygon(screen, BLACK, vertices)
 
-    # # Draw dynamic bodies (dominoes, bowling ball, beam)
-    # for body in world.bodies:
-    #     if body.type == b2_dynamicBody:
-    #         for fixture in body.fixtures:
-    #             shape = fixture.shape
-    #             if isinstance(shape, b2PolygonShape):
-    #                 vertices = [body.transform * v for v in shape.vertices]
-    #                 vertices = [to_pygame(v) for v in vertices]
-    #                 pygame.draw.polygon(screen, BLACK, vertices)
-    #             elif isinstance(shape, b2CircleShape):
-    #                 position = body.transform * shape.pos
-    #                 position = to_pygame(position)
-    #                 pygame.draw.circle(screen, BLACK, position, int(shape.radius * PPM))
+        # Draw dynamic bodies (dominoes, bowling ball, beam)
+        for body in world.bodies:
+            if body.type == b2_dynamicBody:
+                for fixture in body.fixtures:
+                    shape = fixture.shape
+                    if isinstance(shape, b2PolygonShape):
+                        vertices = [body.transform * v for v in shape.vertices]
+                        vertices = [to_pygame(v) for v in vertices]
+                        pygame.draw.polygon(screen, BLACK, vertices)
+                    elif isinstance(shape, b2CircleShape):
+                        position = body.transform * shape.pos
+                        position = to_pygame(position)
+                        pygame.draw.circle(
+                            screen, BLACK, position, int(shape.radius * PPM)
+                        )
 
-    # # Display variables on the screen
-    # status_texts = [
-    #     f"First Domino Tipped: {'Yes' if first_domino_tipped else 'No'}",
-    #     f"Last Domino Tipped: {'Yes' if last_domino_tipped else 'No'}",
-    #     f"Domino and Ball Contact: {'Yes' if domino_ball_contact else 'No'}",
-    #     f"Ball Moving Right: {'Yes' if ball_moving_right else 'No'}",
-    #     f"Ball Contact Top Level: {'Yes' if ball_contact_top else 'No'}",
-    #     f"Ball Contact Beam: {'Yes' if ball_contact_bottom else 'No'}",
-    #     f"Beam Tip: {beam_tip}",
-    # ]
+        # Display variables on the screen
+        status_texts = [
+            f"First Domino Tipped: {'Yes' if first_domino_tipped else 'No'}",
+            f"Last Domino Tipped: {'Yes' if last_domino_tipped else 'No'}",
+            f"Domino and Ball Contact: {'Yes' if domino_ball_contact else 'No'}",
+            f"Ball Moving Right: {'Yes' if ball_moving_right else 'No'}",
+            f"Ball Contact Top Level: {'Yes' if ball_contact_top else 'No'}",
+            f"Ball Contact Beam: {'Yes' if ball_contact_bottom else 'No'}",
+            f"Beam Tip: {beam_tip}",
+        ]
 
-    # for i, text in enumerate(status_texts):
-    #     rendered_text = font.render(text, True, BLACK)
-    #     screen.blit(rendered_text, (10, 10 + i * 20))
+        for i, text in enumerate(status_texts):
+            rendered_text = font.render(text, True, BLACK)
+            screen.blit(rendered_text, (10, 10 + i * 20))
 
     # # Capture the screen surface as an image
     # frame = pygame.surfarray.array3d(screen)
@@ -360,9 +362,10 @@ while running:
     world.Step(TIME_STEP, 10, 10)
     world.ClearForces()
 
-    # # Update display
-    # pygame.display.flip()
-    # clock.tick(TARGET_FPS)
+    if use_pygame:
+        # Update display
+        pygame.display.flip()
+        clock.tick(TARGET_FPS)
 
     frame_count += 1
     if frame_count >= total_frames:
