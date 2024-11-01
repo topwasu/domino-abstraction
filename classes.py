@@ -135,3 +135,13 @@ class Button:
         if event.type == pygame.MOUSEBUTTONDOWN and self.is_hovered:
             return True
         return False
+    
+    
+class StructureRep:
+    def __init__(self, domino_bodies, ball_body):
+        self.sorted_domino_positions = sorted([body.position[0] for body in domino_bodies])
+        self.domino_width = 0.2
+        self.domino_height = 1.0
+        self.ball_position = ball_body.position[0]
+        self.ball_radius = 0.5
+        self.ball_density = 0.5

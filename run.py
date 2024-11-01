@@ -9,7 +9,7 @@ import numpy as np
 import hydra
 import matplotlib.pyplot as plt
 
-from classes import ContactListener, Button, Slider
+from classes import ContactListener, Button, Slider, StructureRep
 from world import get_world, to_pygame, draw_world_on_screen
 
 
@@ -76,6 +76,26 @@ def main(config):
     game_started = False
     frame_count = 0
     total_frames = DURATION * TARGET_FPS  # Total number of frames to record
+    
+    if config.task != 'slider':
+        slider_values = get_values([], config)
+        world, first_domino_body, last_domino_body, bowling_ball_body, beam_body, domino_bodies, ball_body = get_world(*slider_values)
+        
+        rep = StructureRep(domino_bodies, ball_body)
+        print(rep)
+        
+        screen.fill(WHITE)
+        draw_world_on_screen(world, screen)
+        
+        frame = pygame.surfarray.array3d(screen)
+        # Convert from (width, height, channels) to (height, width, channels)
+        frame = np.transpose(frame, (1, 0, 2))
+        
+        plt.imshow(frame)
+        plt.axis('off')
+        plt.savefig(f'domino_simulation_balance_beam_{config.task}.png')
+        
+        input()
 
     while running:
         # Handle events
@@ -94,7 +114,7 @@ def main(config):
             if start_button.handle_event(event):
                 game_started = True  # Set the flag to True to indicate game has started
                 
-            world, first_domino_body, last_domino_body, bowling_ball_body, beam_body = get_world(*slider_values)
+            world, first_domino_body, last_domino_body, bowling_ball_body, beam_body, _, _ = get_world(*slider_values)
 
         # Clear screen
         screen.fill(WHITE)
@@ -168,10 +188,6 @@ def main(config):
         # frame_count += 1
         # if frame_count >= total_frames:
         #     running = False
-        
-        plt.imshow(frame)
-        plt.axis('off')
-        plt.savefig(f'domino_simulation_balance_beam_{config.task}.png')
 
     # Clean up
     video_writer.close()

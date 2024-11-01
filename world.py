@@ -157,7 +157,7 @@ def get_world(domino_spacing=0.5, domino_width=0.2, domino_height=1.0, num_domin
     # Add the contact listener to the world
     contact_listener = ContactListener(last_domino_body, bowling_ball_body, platform_body, beam_body)
     world.contactListener = contact_listener
-    return world, first_domino_body, last_domino_body, bowling_ball_body, beam_body
+    return world, first_domino_body, last_domino_body, bowling_ball_body, beam_body, domino_bodies, bowling_ball_body
 
 
 def draw_world_on_screen(world, screen):
