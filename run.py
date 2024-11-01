@@ -77,25 +77,25 @@ def main(config):
     frame_count = 0
     total_frames = DURATION * TARGET_FPS  # Total number of frames to record
     
-    if config.task != 'slider':
-        slider_values = get_values([], config)
-        world, first_domino_body, last_domino_body, bowling_ball_body, beam_body, domino_bodies, ball_body = get_world(*slider_values)
+    # if config.task != 'slider':
+    #     slider_values = get_values([], config)
+    #     world, first_domino_body, last_domino_body, bowling_ball_body, beam_body, domino_bodies, ball_body = get_world(*slider_values)
         
-        rep = StructureRep(domino_bodies, ball_body)
-        print(rep)
+    #     rep = StructureRep(domino_bodies, ball_body)
+    #     print(rep)
         
-        screen.fill(WHITE)
-        draw_world_on_screen(world, screen)
+    #     screen.fill(WHITE)
+    #     draw_world_on_screen(world, screen)
         
-        frame = pygame.surfarray.array3d(screen)
-        # Convert from (width, height, channels) to (height, width, channels)
-        frame = np.transpose(frame, (1, 0, 2))
+    #     frame = pygame.surfarray.array3d(screen)
+    #     # Convert from (width, height, channels) to (height, width, channels)
+    #     frame = np.transpose(frame, (1, 0, 2))
         
-        plt.imshow(frame)
-        plt.axis('off')
-        plt.savefig(f'domino_simulation_balance_beam_{config.task}.png')
+    #     plt.imshow(frame)
+    #     plt.axis('off')
+    #     plt.savefig(f'domino_simulation_balance_beam_{config.task}.png')
         
-        input()
+    #     input()
 
     while running:
         # Handle events
