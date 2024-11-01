@@ -11,7 +11,7 @@ from Box2D import (
 import imageio
 import re
 
-use_pygame = True
+use_pygame = False
 
 if use_pygame:
     import pygame
@@ -153,10 +153,11 @@ start_y = 6 + domino_height / 2  # Platform top surface y=6, domino center y
 domino_spacing = 0.5  # Spacing between dominoes
 domino_bodies = []  # List to hold domino bodies
 
-for i, d in enumerate(domino_positions):
-    domino_x = start_x + i * (domino_width + domino_spacing)
+last_domino_x = 0.0
+for i, domino_x in enumerate(domino_positions):
+    last_domino_x = domino_x
     angle = 0.0
-    if d == push_position:
+    if domino_x == push_position:
         angle = -0.3
 
     body = world.CreateDynamicBody(position=(domino_x, start_y), angle=angle)
@@ -170,16 +171,12 @@ for i, d in enumerate(domino_positions):
 first_domino_body = domino_bodies[0]
 last_domino_body = domino_bodies[-1]
 
-# Compute last domino x-position
-last_domino_x = start_x + (num_dominoes - 1) * (domino_width + domino_spacing)
-
 # Bowling ball properties
 bowling_ball_radius = 0.5  # 0.5 meters radius
 bowling_ball_density = 0.5  # Adjust as needed
 small_gap = 0.1  # Gap between last domino and bowling ball
 
 for bowling_ball_x in ball_positions:
-    bowling_ball_x = last_domino_x + domino_width / 2 + bowling_ball_radius + small_gap
     bowling_ball_y = 6 + bowling_ball_radius  # On top of the platform
 
     # Create bowling ball
@@ -356,7 +353,7 @@ while running:
     # video_writer.append_data(frame)
 
     if beam_tip == "positive":
-        break
+        exit(0)
 
     # Update physics
     world.Step(TIME_STEP, 10, 10)
@@ -375,5 +372,4 @@ while running:
 # video_writer.close()
 # pygame.quit()
 
-if beam_tip == "positive":
-    print("success.")
+exit(1)

@@ -17,15 +17,31 @@ will_be_tipped(domino(X)) :-
     X - X1 =< H,
     will_be_tipped(domino(X1)).
 
+will_be_tipped(domino(D)) :-
+    ball_x(B),
+    B < D,
+    will_move_ball(ball_x(B)).
+
 will_be_tipped_(D) :- once(will_be_tipped(D)).
 
-will_cup :-
+will_move_ball(ball_x(B)) :-
     height(H),
-    ball_x(B),
     domino(X),
     X =< B,
     B - X =< H,
     will_be_tipped(domino(X)).
+
+rightmost_ball(ball_x(B)) :-
+    aggregate(max(XPos), ball_x(XPos), B).
+
+rightmost_domino(domino(D)) :-
+    aggregate(max(XPos), domino(XPos), D).
+
+will_cup :-
+    rightmost_ball(ball_x(B)),
+    rightmost_domino(domino(D)),
+    B > D,
+    will_move_ball(ball_x(B)).
 
 main :-
     ( will_cup -> halt(0) ; halt(1) ).
