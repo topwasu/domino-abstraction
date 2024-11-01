@@ -3,6 +3,8 @@ import hydra
 import logging
 from openai_hf_interface import choose_provider, create_llm
 
+from sklearn.linear_model import LogisticRegression
+
 
 from programs import *
 from world import get_world
@@ -34,11 +36,13 @@ def main(config):
     
     programs = [get_abstract_feature_1,
                 get_abstract_feature_2, 
-                get_abstract_feature_3, 
+                # get_abstract_feature_3, 
                 get_abstract_feature_4, 
                 get_abstract_feature_5]
 
 
+    all_features = []
+    all_ys = [1, 0, 1]
     for task in ['task_1', 'task_2', 'task_3']:
         values = get_values(task)
 
@@ -48,8 +52,19 @@ def main(config):
         features = [f(rep) for f in programs]
         
         log.info(f'Feature for task {task} = {features}')
+        all_features.append(features)
             
-        
+    
+    model = LogisticRegression(
+        penalty='l1',         # L2 regularization by default
+        solver='liblinear',   # Recommended solver for small or binary datasets
+        max_iter=1000,         # Increase if the model struggles to converge
+        verbose=True
+    )
+
+    # Fit the model
+    model.fit(all_features * 10, all_ys * 10)   
+    log.info(model.coef_)
 
 
 if __name__ == '__main__':
